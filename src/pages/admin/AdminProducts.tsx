@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2, Upload, X } from "lucide-react";
 import { useAppStore } from "@/store/AppStore";
+import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useUploadImage } from "@/hooks/useApi";
+import { getApiUrl } from "@/lib/api";
 import type { Product } from "@/data/products";
 import {
   Dialog,
@@ -47,7 +49,13 @@ const emptyForm = (): Omit<Product, "id"> => ({
 });
 
 const AdminProducts = () => {
-  const { products, addProduct, updateProduct, deleteProduct } = useAppStore();
+  const { products: storeProducts, addProduct, updateProduct, deleteProduct } = useAppStore();
+  const { data: apiProducts, isLoading } = useProducts();
+  const products = getApiUrl() ? (apiProducts ?? []) : storeProducts;
+  const createProduct = useCreateProduct();
+  const updateProductMutation = useUpdateProduct();
+  const deleteProductMutation = useDeleteProduct();
+  const uploadImage = useUploadImage();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<Omit<Product, "id">>(emptyForm());
@@ -76,7 +84,7 @@ const AdminProducts = () => {
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim()) {
       toast.error("Name is required");
       return;
@@ -88,6 +96,19 @@ const AdminProducts = () => {
       return;
     }
     const stock = Math.max(0, Math.floor(Number(form.stock) || 0));
+    let images: string[] = typeof form.images === "string" ? (form.images as string).split("\n").map((s) => s.trim()).filter(Boolean) : [...(form.images || [])];
+    if (getApiUrl()) {
+      const toUpload = images.filter((url) => url.startsWith("data:"));
+      for (const dataUrl of toUpload) {
+        try {
+          const res = await uploadImage.mutateAsync(dataUrl);
+          images = images.map((url) => (url === dataUrl ? res.url : url));
+        } catch {
+          toast.error("Image upload failed");
+          return;
+        }
+      }
+    }
     const payload = {
       ...form,
       slug,
@@ -95,11 +116,26 @@ const AdminProducts = () => {
       price,
       description: form.description.trim(),
       features: typeof form.features === "string" ? (form.features as string).split("\n").map((s) => s.trim()).filter(Boolean) : form.features,
-      images: typeof form.images === "string" ? (form.images as string).split("\n").map((s) => s.trim()).filter(Boolean) : form.images,
+      images,
       stock,
       tag: form.tag || undefined,
     };
 
+    if (getApiUrl()) {
+      try {
+        if (editingProduct) {
+          await updateProductMutation.mutateAsync({ id: editingProduct.id, body: payload });
+          toast.success("Product updated");
+        } else {
+          await createProduct.mutateAsync(payload);
+          toast.success("Product added");
+        }
+        setDialogOpen(false);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Save failed");
+      }
+      return;
+    }
     if (editingProduct) {
       updateProduct(editingProduct.id, payload);
       toast.success("Product updated");
@@ -114,14 +150,22 @@ const AdminProducts = () => {
     deleteProductIdRef.current = id;
     setDeleteProductId(id);
   };
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const id = deleteProductIdRef.current;
     deleteProductIdRef.current = null;
     setDeleteProductId(null);
-    if (id) {
-      deleteProduct(id);
-      toast.success("Product removed");
+    if (!id) return;
+    if (getApiUrl()) {
+      try {
+        await deleteProductMutation.mutateAsync(id);
+        toast.success("Product removed");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Delete failed");
+      }
+      return;
     }
+    deleteProduct(id);
+    toast.success("Product removed");
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,7 +215,7 @@ const AdminProducts = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Products</h1>
-          <p className="mt-1 font-body text-sm text-muted-foreground">{products.length} bags in inventory</p>
+          <p className="mt-1 font-body text-sm text-muted-foreground">{isLoading ? "Loading…" : `${products.length} bags in inventory`}</p>
         </div>
         <Button onClick={openAdd} className="gap-1.5 bg-primary font-body text-xs font-semibold text-primary-foreground">
           <Plus className="h-3.5 w-3.5" />
@@ -191,45 +235,82 @@ const AdminProducts = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-b border-border transition-colors hover:bg-secondary/30">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <img src={p.images?.length ? p.images[0] : "/placeholder.svg"} alt={p.name} className="h-10 w-10 rounded-sm object-cover" />
-                    <span className="font-body text-sm font-medium text-foreground">{p.name}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 font-body text-sm text-foreground">${p.price}</td>
-                <td className="px-4 py-3 font-body text-sm text-foreground">{p.stock}</td>
-                <td className="px-4 py-3">
-                  {p.tag ? (
-                    <span className="rounded-sm bg-primary/10 px-2 py-0.5 font-body text-xs font-medium text-primary">{p.tag}</span>
-                  ) : (
-                    <span className="font-body text-xs text-muted-foreground">—</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(p)}
-                      className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                      title="Edit"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => confirmDelete(p.id)}
-                      className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+            {isLoading ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="py-8 text-center font-body text-sm text-muted-foreground"
+                >
+                  Loading…
                 </td>
               </tr>
-            ))}
+            ) : products.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="py-8 text-center font-body text-sm text-muted-foreground"
+                >
+                  No products yet.
+                </td>
+              </tr>
+            ) : (
+              products.map((p) => (
+                <tr
+                  key={p.id}
+                  className="border-b border-border transition-colors hover:bg-secondary/30"
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={p.images?.length ? p.images[0] : "/placeholder.svg"}
+                        alt={p.name}
+                        className="h-10 w-10 rounded-sm object-cover"
+                      />
+                      <span className="font-body text-sm font-medium text-foreground">
+                        {p.name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 font-body text-sm text-foreground">
+                    ${p.price}
+                  </td>
+                  <td className="px-4 py-3 font-body text-sm text-foreground">
+                    {p.stock}
+                  </td>
+                  <td className="px-4 py-3">
+                    {p.tag ? (
+                      <span className="rounded-sm bg-primary/10 px-2 py-0.5 font-body text-xs font-medium text-primary">
+                        {p.tag}
+                      </span>
+                    ) : (
+                      <span className="font-body text-xs text-muted-foreground">
+                        —
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(p)}
+                        className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        title="Edit"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => confirmDelete(p.id)}
+                        className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -238,7 +319,7 @@ const AdminProducts = () => {
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingProduct ? "Edit bag" : "Add new bag"}</DialogTitle>
-            <DialogDescription>Changes are in-memory until you refresh.</DialogDescription>
+            <DialogDescription>{getApiUrl() ? "Saves update the live catalog." : "Changes are in-memory until you refresh."}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -372,7 +453,7 @@ const AdminProducts = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove this bag?</AlertDialogTitle>
-            <AlertDialogDescription>This will remove it from the list until you refresh. This action cannot be undone in this session.</AlertDialogDescription>
+            <AlertDialogDescription>This will remove the product from the catalog. This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

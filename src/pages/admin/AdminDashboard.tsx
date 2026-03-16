@@ -1,9 +1,15 @@
 import { ShoppingBag, Package, DollarSign, Clock } from "lucide-react";
 import { useAppStore } from "@/store/AppStore";
+import { useProducts, useOrders } from "@/hooks/useApi";
+import { getApiUrl } from "@/lib/api";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 
 const AdminDashboard = () => {
-  const { products, orders } = useAppStore();
+  const { products: storeProducts, orders: storeOrders } = useAppStore();
+  const { data: apiProducts } = useProducts();
+  const { data: apiOrders } = useOrders();
+  const products = getApiUrl() ? (apiProducts ?? []) : storeProducts;
+  const orders = getApiUrl() ? (apiOrders ?? []) : storeOrders;
 
   const pendingStatuses = ["pending", "contacted", "awaiting_payment", "payment_received"] as const;
   const pendingCount = orders.filter((o) => pendingStatuses.includes(o.status)).length;

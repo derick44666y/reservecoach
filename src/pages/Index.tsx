@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import ProductCard from "@/components/ProductCard";
 import SiteHeader from "@/components/SiteHeader";
 import { useAppStore } from "@/store/AppStore";
+import { useProducts } from "@/hooks/useApi";
+import { getApiUrl } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
@@ -19,7 +21,9 @@ const SORT_OPTIONS: Array<{ value: string; label: string }> = [
 ];
 
 const Index = () => {
-  const { products } = useAppStore();
+  const { products: storeProducts } = useAppStore();
+  const { data: apiProducts, isLoading, isError } = useProducts();
+  const products = getApiUrl() ? (apiProducts ?? []) : storeProducts;
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [sort, setSort] = useState("default");
@@ -93,7 +97,11 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-6">
-          {filteredProducts.length === 0 ? (
+          {isLoading ? (
+            <div className="col-span-full py-12 text-center font-body text-muted-foreground">Loading…</div>
+          ) : isError ? (
+            <div className="col-span-full py-12 text-center font-body text-muted-foreground">Unable to load products.</div>
+          ) : filteredProducts.length === 0 ? (
             <div className="col-span-full py-12 text-center font-body text-muted-foreground">
               {search.trim() ? `No bags match "${search}". Try another search.` : "No bags in the collection yet."}
             </div>

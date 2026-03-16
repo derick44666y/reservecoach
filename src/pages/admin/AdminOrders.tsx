@@ -4,6 +4,8 @@ import { Eye, Copy, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAppStore, type Order } from "@/store/AppStore";
+import { useOrders, useUpdateOrderStatus } from "@/hooks/useApi";
+import { getApiUrl } from "@/lib/api";
 import {
   Sheet,
   SheetContent,
@@ -30,7 +32,17 @@ const AdminOrders = () => {
     toast.success("Copied to clipboard");
   };
 
-  const handleStatusChange = (orderId: string, status: OrderStatusType) => {
+  const handleStatusChange = async (orderId: string, status: OrderStatusType) => {
+    if (getApiUrl()) {
+      try {
+        await updateStatusMutation.mutateAsync({ orderId, status });
+        setViewOrder((prev) => (prev && prev.id === orderId ? { ...prev, status } : prev));
+        toast.success("Status updated");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Update failed");
+      }
+      return;
+    }
     updateOrderStatus(orderId, status);
     setViewOrder((prev) => (prev && prev.id === orderId ? { ...prev, status } : prev));
     toast.success("Status updated");
@@ -39,7 +51,7 @@ const AdminOrders = () => {
   return (
     <div className="p-6">
       <h1 className="font-display text-2xl font-bold text-foreground">Orders</h1>
-      <p className="mt-1 font-body text-sm text-muted-foreground">{orders.length} total orders</p>
+      <p className="mt-1 font-body text-sm text-muted-foreground">{isLoading ? "Loading…" : `${orders.length} total orders`}</p>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
@@ -77,7 +89,11 @@ const AdminOrders = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="py-8 text-center font-body text-sm text-muted-foreground">Loading…</td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center font-body text-sm text-muted-foreground">
                   No orders match your filters.

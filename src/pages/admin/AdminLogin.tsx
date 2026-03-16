@@ -4,14 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-
-const ADMIN_KEY = "rc_admin_session";
+import { api, setAuthToken, clearAuthToken, getAuthToken } from "@/lib/api";
 
 export function useAdminAuth() {
-  const isAuthed = sessionStorage.getItem(ADMIN_KEY) === "true";
-  const login = () => sessionStorage.setItem(ADMIN_KEY, "true");
+  const isAuthed = !!getAuthToken();
+  const login = (token: string) => setAuthToken(token);
   const logout = () => {
-    sessionStorage.removeItem(ADMIN_KEY);
+    clearAuthToken();
     window.location.href = "/";
   };
   return { isAuthed, login, logout };
@@ -20,16 +19,30 @@ export function useAdminAuth() {
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD ?? "reservecoach2026";
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === adminPassword) {
-      login();
-      navigate("/vault/dashboard");
-    } else {
-      toast.error("Invalid credentials");
+    if (!email.trim() || !password) {
+      toast.error("Email and password required");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const data = await api.post<{ token: string }>("/api/auth/login", { email: email.trim(), password });
+      if (data?.token) {
+        login(data.token);
+        toast.success("Signed in");
+        navigate("/vault/dashboard");
+      } else {
+        toast.error("Invalid response");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Invalid credentials");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -42,6 +55,18 @@ const AdminLogin = () => {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <Label htmlFor="email" className="font-body text-xs">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1"
+              placeholder="admin@example.com"
+              autoComplete="email"
+            />
+          </div>
+          <div>
             <Label htmlFor="password" className="font-body text-xs">Password</Label>
             <Input
               id="password"
@@ -49,11 +74,16 @@ const AdminLogin = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1"
-              placeholder="Enter admin password"
+              placeholder="Password"
+              autoComplete="current-password"
             />
           </div>
-          <Button type="submit" className="w-full bg-primary font-body text-sm font-semibold text-primary-foreground">
-            Sign In
+          <Button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-primary font-body text-sm font-semibold text-primary-foreground"
+          >
+            {submitting ? "Signing in..." : "Sign In"}
           </Button>
         </form>
       </div>

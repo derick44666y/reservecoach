@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAppStore } from "@/store/AppStore";
+import { useProductBySlug } from "@/hooks/useApi";
+import { getApiUrl } from "@/lib/api";
 import ProductGallery from "@/components/ProductGallery";
 import SiteHeader from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
@@ -10,10 +12,26 @@ const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { getProductBySlug } = useAppStore();
-  const product = getProductBySlug(slug || "");
+  const { data: apiProduct, isLoading, isError } = useProductBySlug(slug);
+  const storeProduct = getProductBySlug(slug || "");
+  const product = getApiUrl() ? apiProduct : storeProduct;
   const maxQty = product ? Math.min(5, Math.max(0, product.stock)) : 0;
   const [qty, setQty] = useState(() => (maxQty >= 1 ? 1 : 0));
 
+  if (getApiUrl() && isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+  if (getApiUrl() && (isError || !product)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Product not found.</p>
+      </div>
+    );
+  }
   if (!product) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">

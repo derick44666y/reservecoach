@@ -1,6 +1,8 @@
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAppStore } from "@/store/AppStore";
+import { useProductBySlug, useCreateOrder } from "@/hooks/useApi";
+import { getApiUrl } from "@/lib/api";
 import SiteHeader from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +35,10 @@ const OrderForm = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { getProductBySlug, addOrder } = useAppStore();
-  const product = getProductBySlug(slug || "");
+  const { data: apiProduct, isLoading, isError } = useProductBySlug(slug);
+  const storeProduct = getProductBySlug(slug || "");
+  const product = getApiUrl() ? apiProduct : storeProduct;
+  const createOrder = useCreateOrder();
   const rawQty = parseInt(searchParams.get("qty") || "1", 10);
   const requestedQty = Math.min(5, Math.max(1, Number.isNaN(rawQty) ? 1 : rawQty));
   const stock = product?.stock ?? 0;
@@ -41,6 +46,20 @@ const OrderForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
+  if (getApiUrl() && isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+  if (getApiUrl() && (isError || !product)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Product not found.</p>
+      </div>
+    );
+  }
   if (!product) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -53,7 +72,7 @@ const OrderForm = () => {
   const outOfStock = stock === 0;
   const orderImage = product.images?.length ? product.images[0] : "/placeholder.svg";
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     const formData = new FormData(e.currentTarget);
@@ -70,7 +89,7 @@ const OrderForm = () => {
       return;
     }
 
-    const orderNum = addOrder({
+    const payload = {
       customerName: `${result.data.firstName} ${result.data.lastName}`.trim(),
       phone: result.data.phone,
       email: result.data.email,
@@ -78,17 +97,35 @@ const OrderForm = () => {
       qty,
       price: product.price,
       total: product.price * qty,
-      status: "pending",
       street: result.data.street,
       city: result.data.city,
       state: result.data.state,
       zip: result.data.zip,
       notes: result.data.notes,
-    });
+    };
 
+    if (getApiUrl()) {
+      try {
+        const res = await createOrder.mutateAsync(payload);
+        setErrors({});
+        toast.success("Order placed successfully!");
+        navigate(`/order-success?order=${res.id}&name=${encodeURIComponent(result.data.firstName)}`);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Order failed");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    const orderNum = addOrder({
+      ...payload,
+      status: "pending",
+    });
     setErrors({});
     toast.success("Order placed successfully!");
     navigate(`/order-success?order=${orderNum}&name=${encodeURIComponent(result.data.firstName)}`);
+    setSubmitting(false);
   };
 
   return (

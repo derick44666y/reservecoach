@@ -3,6 +3,8 @@ import SiteHeader from "@/components/SiteHeader";
 import OrderStatusBadge, { OrderStatusType } from "@/components/OrderStatusBadge";
 import { Package } from "lucide-react";
 import { useAppStore } from "@/store/AppStore";
+import { useOrder } from "@/hooks/useApi";
+import { getApiUrl } from "@/lib/api";
 
 const statusMessages: Record<OrderStatusType, string> = {
   pending: "Your order has been received. We'll contact you shortly with payment instructions.",
@@ -19,12 +21,35 @@ const statusMessages: Record<OrderStatusType, string> = {
 const OrderStatus = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const { getOrder } = useAppStore();
-  const order = orderId ? getOrder(orderId) : undefined;
+  const { data: apiOrder, isLoading, isError } = useOrder(orderId);
+  const storeOrder = orderId ? getOrder(orderId) : undefined;
+  const order = getApiUrl() ? apiOrder : storeOrder;
   const displayOrder = order ?? {
     status: "pending" as OrderStatusType,
     customerName: "Customer",
     bag: "Your Bag",
   };
+
+  if (getApiUrl() && isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <main className="container flex max-w-md flex-col items-center py-16 text-center">
+          <p className="font-body text-muted-foreground">Loading…</p>
+        </main>
+      </div>
+    );
+  }
+  if (getApiUrl() && isError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <main className="container flex max-w-md flex-col items-center py-16 text-center">
+          <p className="font-body text-muted-foreground">Order not found.</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
