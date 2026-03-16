@@ -1,4 +1,4 @@
-require('dotenv').config();
+try { require('dotenv').config(); } catch (_) { /* .env optional if DATABASE_URL set in env */ }
 const bcrypt = require('bcryptjs');
 const { neon } = require('@neondatabase/serverless');
 
