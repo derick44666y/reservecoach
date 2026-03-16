@@ -15,9 +15,9 @@ const OrderSuccess = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] bg-background">
       <SiteHeader />
-      <main className="container flex max-w-md flex-col items-center py-16 text-center">
+      <main className="container flex max-w-md flex-col items-center py-12 px-4 text-center">
         <CheckCircle className="h-16 w-16 text-success" />
         <h1 className="mt-6 font-display text-3xl font-bold text-foreground">
           Order Received!
@@ -30,7 +30,7 @@ const OrderSuccess = () => {
           type="button"
           variant="ghost"
           size="sm"
-          className="mt-2 gap-1.5 font-body text-xs text-muted-foreground hover:text-foreground"
+          className="mt-2 gap-1.5 min-h-[44px] font-body text-xs text-muted-foreground hover:text-foreground touch-manipulation"
           onClick={copyOrderNumber}
         >
           <Copy className="h-3.5 w-3.5" />
@@ -57,13 +57,13 @@ const OrderSuccess = () => {
           Keep your phone handy — check texts and email.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Link to={`/order-status/${orderNum}`}>
-            <Button variant="default" className="font-body text-xs uppercase tracking-wider bg-primary text-primary-foreground">
+          <Link to={`/order-status/${orderNum}`} className="w-full sm:w-auto">
+            <Button variant="default" className="w-full min-h-[48px] font-body text-xs uppercase tracking-wider bg-primary text-primary-foreground touch-manipulation">
               Track your order
             </Button>
           </Link>
-          <Link to="/">
-            <Button variant="outline" className="font-body text-xs uppercase tracking-wider">
+          <Link to="/" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full min-h-[48px] font-body text-xs uppercase tracking-wider touch-manipulation">
               Continue Shopping
             </Button>
           </Link>

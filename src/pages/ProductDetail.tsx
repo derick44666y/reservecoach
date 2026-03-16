@@ -45,9 +45,9 @@ const ProductDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-0">
+    <div className="min-h-screen min-h-[100dvh] bg-background pb-24 md:pb-0">
       <SiteHeader />
-      <main className="container py-6 md:py-10">
+      <main className="container px-4 py-6 md:py-10">
         <div className="grid gap-8 md:grid-cols-2">
           <ProductGallery images={product.images} name={product.name} />
 

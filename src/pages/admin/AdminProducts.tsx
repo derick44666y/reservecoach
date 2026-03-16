@@ -211,8 +211,8 @@ const AdminProducts = () => {
   const formImages = Array.isArray(form.images) ? form.images : [];
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 pb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Products</h1>
           <p className="mt-1 font-body text-sm text-muted-foreground">{isLoading ? "Loading…" : `${products.length} bags in inventory`}</p>
@@ -293,18 +293,18 @@ const AdminProducts = () => {
                       <button
                         type="button"
                         onClick={() => openEdit(p)}
-                        className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        className="rounded-sm p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground touch-manipulation"
                         title="Edit"
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => confirmDelete(p.id)}
-                        className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        className="rounded-sm p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive touch-manipulation"
                         title="Delete"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
@@ -316,7 +316,7 @@ const AdminProducts = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full rounded-none overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-lg">
           <DialogHeader>
             <DialogTitle>{editingProduct ? "Edit bag" : "Add new bag"}</DialogTitle>
             <DialogDescription>{getApiUrl() ? "Saves update the live catalog." : "Changes are in-memory until you refresh."}</DialogDescription>

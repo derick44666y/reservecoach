@@ -50,7 +50,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <main className="container py-6 md:py-10">
+      <main className="container px-4 py-6 md:py-10">
         <div className="mb-8 text-center">
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-5xl">
             The Collection
@@ -68,7 +68,7 @@ const Index = () => {
               placeholder="Search bags..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 font-body"
+              className="pl-9 font-body min-h-[44px]"
               aria-label="Search for a bag"
             />
           </div>
@@ -76,7 +76,7 @@ const Index = () => {
             <select
               value={tagFilter}
               onChange={(e) => setTagFilter(e.target.value)}
-              className="h-10 rounded-md border border-input bg-background px-3 font-body text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-[44px] flex-1 sm:flex-initial rounded-md border border-input bg-background px-3 font-body text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-manipulation"
               aria-label="Filter by tag"
             >
               {TAG_FILTER_OPTIONS.map((o) => (
@@ -86,7 +86,7 @@ const Index = () => {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="h-10 rounded-md border border-input bg-background px-3 font-body text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-[44px] flex-1 sm:flex-initial rounded-md border border-input bg-background px-3 font-body text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-manipulation"
               aria-label="Sort by"
             >
               {SORT_OPTIONS.map((o) => (
@@ -112,7 +112,7 @@ const Index = () => {
           )}
         </div>
       </main>
-      <footer className="border-t border-border py-8">
+      <footer className="border-t border-border py-8 px-4">
         <div className="container flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-8">
           <a href="mailto:hello@reservecoach.com" className="font-body text-xs text-muted-foreground hover:text-foreground underline">
             Contact

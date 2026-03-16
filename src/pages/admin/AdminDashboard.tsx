@@ -27,13 +27,13 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6 pb-6">
       <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
       <p className="mt-1 font-body text-sm text-muted-foreground">Quick overview of your store.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="rounded-sm border border-border bg-card p-5">
+          <div key={label} className="rounded-sm border border-border bg-card p-4 sm:p-5 min-h-[80px] flex flex-col justify-center">
             <div className="flex items-center justify-between">
               <p className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
               <Icon className={`h-4 w-4 ${color}`} />
@@ -43,14 +43,14 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      <div className="mt-8 rounded-sm border border-border bg-card p-5">
+      <div className="mt-8 rounded-sm border border-border bg-card p-4 sm:p-5">
         <h2 className="font-display text-lg font-semibold text-foreground">Recent orders</h2>
         <div className="mt-4 space-y-3">
           {recentOrders.length === 0 ? (
             <p className="font-body text-sm text-muted-foreground">No orders yet.</p>
           ) : (
             recentOrders.map((o) => (
-              <div key={o.id} className="flex flex-wrap items-center gap-2 border-b border-border pb-2 last:border-0 last:pb-0">
+              <div key={o.id} className="flex flex-wrap items-center gap-2 border-b border-border pb-3 pt-1 last:border-0 last:pb-0 min-h-[44px]">
                 <span className="font-body text-sm font-semibold text-foreground">{o.id}</span>
                 <span className="font-body text-sm text-muted-foreground">—</span>
                 <span className="font-body text-sm text-foreground">{o.bag}</span>

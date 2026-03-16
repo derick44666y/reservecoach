@@ -47,8 +47,8 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="w-full max-w-sm space-y-6 p-6">
+    <div className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-background p-4 pb-[env(safe-area-inset-bottom)]">
+      <div className="w-full max-w-sm space-y-6 p-4 sm:p-6">
         <div className="text-center">
           <h1 className="font-display text-2xl font-bold text-foreground">Reserve Coach</h1>
           <p className="mt-1 font-body text-sm text-muted-foreground">Admin Access</p>
@@ -61,7 +61,7 @@ const AdminLogin = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1"
+              className="mt-1 min-h-[44px]"
               placeholder="admin@example.com"
               autoComplete="email"
             />
@@ -73,7 +73,7 @@ const AdminLogin = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1"
+              className="mt-1 min-h-[44px]"
               placeholder="Password"
               autoComplete="current-password"
             />
@@ -81,7 +81,7 @@ const AdminLogin = () => {
           <Button
             type="submit"
             disabled={submitting}
-            className="w-full bg-primary font-body text-sm font-semibold text-primary-foreground"
+            className="w-full min-h-[48px] bg-primary font-body text-sm font-semibold text-primary-foreground touch-manipulation"
           >
             {submitting ? "Signing in..." : "Sign In"}
           </Button>

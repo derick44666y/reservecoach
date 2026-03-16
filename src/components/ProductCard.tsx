@@ -13,7 +13,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Link to={`/bags/${product.slug}`} className="group block">
+      <Link to={`/bags/${product.slug}`} className="group block touch-manipulation">
         <div className="relative aspect-square overflow-hidden rounded-sm bg-secondary">
           <img
             src={product.images?.length ? product.images[0] : "/placeholder.svg"}

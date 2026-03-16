@@ -52,9 +52,9 @@ const OrderStatus = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] bg-background">
       <SiteHeader />
-      <main className="container flex max-w-md flex-col items-center py-16 text-center">
+      <main className="container flex max-w-md flex-col items-center py-12 px-4 text-center">
         <Package className="h-12 w-12 text-primary" />
         <h1 className="mt-4 font-display text-2xl font-bold text-foreground">
           Order {orderId}

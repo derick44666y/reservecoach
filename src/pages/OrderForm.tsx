@@ -129,9 +129,9 @@ const OrderForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] bg-background">
       <SiteHeader />
-      <main className="container max-w-lg py-6 md:py-10">
+      <main className="container max-w-lg px-4 py-6 md:py-10">
         <h1 className="mb-6 font-display text-2xl font-bold text-foreground">
           Complete Your Order
         </h1>
@@ -226,7 +226,7 @@ const OrderForm = () => {
             type="submit"
             size="lg"
             disabled={submitting || outOfStock}
-            className="w-full bg-primary font-body text-sm font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="w-full min-h-[48px] bg-primary font-body text-sm font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50 touch-manipulation"
           >
             {submitting ? "Placing Order..." : outOfStock ? "Out of stock" : `Place Order — $${total}`}
           </Button>

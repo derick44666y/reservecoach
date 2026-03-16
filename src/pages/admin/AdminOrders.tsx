@@ -16,7 +16,9 @@ import {
 import { Label } from "@/components/ui/label";
 
 const AdminOrders = () => {
-  const { orders, updateOrderStatus } = useAppStore();
+  const { orders: storeOrders, updateOrderStatus } = useAppStore();
+  const { data: apiOrders, isLoading } = useOrders();
+  const orders = getApiUrl() ? (apiOrders ?? []) : storeOrders;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatusType | "all">("all");
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
@@ -49,7 +51,7 @@ const AdminOrders = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6 pb-6">
       <h1 className="font-display text-2xl font-bold text-foreground">Orders</h1>
       <p className="mt-1 font-body text-sm text-muted-foreground">{isLoading ? "Loading…" : `${orders.length} total orders`}</p>
 
@@ -60,13 +62,13 @@ const AdminOrders = () => {
             placeholder="Search by name, order #, or bag..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 font-body text-sm"
+            className="pl-9 font-body text-sm min-h-[44px]"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as OrderStatusType | "all")}
-          className="h-10 rounded-md border border-input bg-background px-3 font-body text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="min-h-[44px] rounded-md border border-input bg-background px-3 font-body text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-manipulation"
         >
           <option value="all">All Statuses</option>
           {orderStatuses.map((s) => (
@@ -75,8 +77,8 @@ const AdminOrders = () => {
         </select>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-sm border border-border">
-        <table className="w-full">
+      <div className="mt-4 overflow-x-auto -mx-4 sm:mx-0 rounded-none sm:rounded-sm border-0 sm:border border-border">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b border-border bg-secondary/50">
               <th className="px-4 py-3 text-left font-body text-xs font-medium uppercase tracking-wider text-muted-foreground">Order</th>
@@ -111,9 +113,9 @@ const AdminOrders = () => {
                         type="button"
                         onClick={() => copyToClipboard(o.phone)}
                         title="Copy phone"
-                        className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                        className="rounded p-2 min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-muted-foreground hover:text-foreground touch-manipulation"
                       >
-                        <Copy className="h-3 w-3" />
+                        <Copy className="h-3.5 w-3.5" />
                       </button>
                     </div>
                     <p className="font-body text-xs text-muted-foreground">{o.phone}</p>
@@ -130,7 +132,7 @@ const AdminOrders = () => {
                     <button
                       type="button"
                       onClick={() => setViewOrder(o)}
-                      className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                      className="rounded-sm p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground touch-manipulation"
                       title="View order"
                     >
                       <Eye className="h-4 w-4" />
@@ -144,7 +146,7 @@ const AdminOrders = () => {
       </div>
 
       <Sheet open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto pb-6">
           {viewOrder && (
             <>
               <SheetHeader>
