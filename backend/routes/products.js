@@ -21,7 +21,13 @@ router.get('/', async (req, res) => {
     }));
     return res.json(products);
   } catch (e) {
-    console.error(e);
+    console.error('Products list error:', e?.message || e);
+    if (e?.code === 'ECONNREFUSED' || e?.message?.includes('connection')) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
+    if (e?.code === '42P01' || e?.message?.includes('does not exist')) {
+      return res.status(503).json({ error: 'Database schema not run. Create products table in Neon.' });
+    }
     return res.status(500).json({ error: 'Server error' });
   }
 });
@@ -43,8 +49,14 @@ router.get('/:slug', async (req, res) => {
       tag: row.tag || undefined,
     });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Product by slug error:', e?.message || e);
+    if (e?.code === 'ECONNREFUSED' || e?.message?.includes('connection')) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
+    if (e?.code === '42P01' || e?.message?.includes('does not exist')) {
+      return res.status(503).json({ error: 'Database schema not run.' });
+    }
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
