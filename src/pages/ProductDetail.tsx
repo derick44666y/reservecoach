@@ -6,7 +6,7 @@ import { getApiUrl } from "@/lib/api";
 import ProductGallery from "@/components/ProductGallery";
 import SiteHeader from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
-import { Shield, Truck, MessageCircle, Minus, Plus } from "lucide-react";
+import { Shield, Truck, MessageCircle, Star, Minus, Plus } from "lucide-react";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -120,15 +120,72 @@ const ProductDetail = () => {
             {/* Trust badges */}
             <div className="flex flex-wrap gap-4 pt-2">
               {[
-                { icon: Truck, text: "Fast US Shipping" },
-                { icon: Shield, text: "Secure Manual Checkout" },
-                { icon: MessageCircle, text: "DM for Questions" },
+                { icon: Shield, text: "Authenticity guarantee" },
+                { icon: Truck, text: "Fast insured US shipping" },
+                { icon: MessageCircle, text: "24h support if anything is wrong" },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-center gap-1.5 font-body text-xs text-muted-foreground">
                   <Icon className="h-3.5 w-3.5" />
                   {text}
                 </div>
               ))}
+            </div>
+
+            {/* Why people love Reserve Coach */}
+            <div className="mt-4 rounded-sm border border-border bg-card p-4">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-primary" />
+                <h2 className="font-display text-sm font-semibold text-foreground">
+                  Why people love Reserve Coach
+                </h2>
+              </div>
+              <ul className="mt-3 space-y-1.5 font-body text-xs text-muted-foreground">
+                <li>• Hand‑checked quality before we ship.</li>
+                <li>• Honest photos and real videos sent on request.</li>
+                <li>• Concierge support on WhatsApp & TikTok for any questions.</li>
+              </ul>
+            </div>
+
+            {/* Simple social proof */}
+            <div className="mt-3 space-y-2 rounded-sm bg-secondary/40 p-3">
+              <p className="flex items-center gap-1.5 font-body text-xs text-foreground">
+                <Star className="h-3.5 w-3.5 text-primary" />
+                <span>“Bag came exactly as shown, packed so nicely.” — A.</span>
+              </p>
+              <p className="flex items-center gap-1.5 font-body text-xs text-foreground">
+                <Star className="h-3.5 w-3.5 text-primary" />
+                <span>“Quick shipping & easy payment, will order again.” — J.</span>
+              </p>
+            </div>
+
+            {/* Concierge contact */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a
+                href="https://wa.me/12294954037"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  variant="outline"
+                  className="w-full gap-1.5 font-body text-xs uppercase tracking-wider"
+                >
+                  Chat on WhatsApp
+                </Button>
+              </a>
+              <a
+                href="https://www.tiktok.com/@reservecoach?_r=1&_t=ZS-94jMRfOPZCr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  variant="ghost"
+                  className="w-full gap-1.5 font-body text-xs uppercase tracking-wider"
+                >
+                  View TikTok page
+                </Button>
+              </a>
             </div>
           </div>
         </div>

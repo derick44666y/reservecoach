@@ -1,6 +1,6 @@
 import { useSearchParams, Link } from "react-router-dom";
 import SiteHeader from "@/components/SiteHeader";
-import { CheckCircle, Copy } from "lucide-react";
+import { CheckCircle, Copy, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -54,8 +54,40 @@ const OrderSuccess = () => {
           </ol>
         </div>
         <p className="mt-4 font-body text-xs text-muted-foreground">
-          Keep your phone handy — check texts and email.
+          Keep your phone handy — check texts and email. If you need anything, message us anytime.
         </p>
+
+        {/* Concierge contact */}
+        <div className="mt-4 flex w-full flex-col gap-2">
+          <a
+            href="https://wa.me/12294954037"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full"
+          >
+            <Button
+              variant="outline"
+              className="w-full min-h-[44px] gap-2 font-body text-xs uppercase tracking-wider touch-manipulation"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp concierge
+            </Button>
+          </a>
+          <a
+            href="https://www.tiktok.com/@reservecoach?_r=1&_t=ZS-94jMRfOPZCr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full"
+          >
+            <Button
+              variant="ghost"
+              className="w-full min-h-[44px] gap-2 font-body text-xs uppercase tracking-wider touch-manipulation"
+            >
+              View TikTok updates
+            </Button>
+          </a>
+        </div>
+
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link to={`/order-status/${orderNum}`} className="w-full sm:w-auto">
             <Button variant="default" className="w-full min-h-[48px] font-body text-xs uppercase tracking-wider bg-primary text-primary-foreground touch-manipulation">
