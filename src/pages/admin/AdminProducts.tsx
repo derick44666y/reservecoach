@@ -60,6 +60,8 @@ const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<Omit<Product, "id">>(emptyForm());
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const deleteProductIdRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -96,17 +98,35 @@ const AdminProducts = () => {
       return;
     }
     const stock = Math.max(0, Math.floor(Number(form.stock) || 0));
-    let images: string[] = typeof form.images === "string" ? (form.images as string).split("\n").map((s) => s.trim()).filter(Boolean) : [...(form.images || [])];
+    setSaving(true);
+    let images: string[] =
+      typeof form.images === "string"
+        ? (form.images as string)
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [...(form.images || [])];
     if (getApiUrl()) {
-      const toUpload = images.filter((url) => url.startsWith("data:"));
-      for (const dataUrl of toUpload) {
+      const toUpload = images
+        .map((url, index) => ({ url, index }))
+        .filter((item) => item.url.startsWith("data:"));
+      if (toUpload.length > 0) {
+        setUploadingImages(true);
         try {
-          const res = await uploadImage.mutateAsync(dataUrl);
-          images = images.map((url) => (url === dataUrl ? res.url : url));
+          const uploadResults = await Promise.all(
+            toUpload.map((item) => uploadImage.mutateAsync(item.url))
+          );
+          uploadResults.forEach((res, i) => {
+            const { index } = toUpload[i];
+            images[index] = res.url;
+          });
         } catch {
+          setSaving(false);
+          setUploadingImages(false);
           toast.error("Image upload failed");
           return;
         }
+        setUploadingImages(false);
       }
     }
     const payload = {
@@ -133,6 +153,8 @@ const AdminProducts = () => {
         setDialogOpen(false);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Save failed");
+      } finally {
+        setSaving(false);
       }
       return;
     }
@@ -144,6 +166,7 @@ const AdminProducts = () => {
       toast.success("Product added");
     }
     setDialogOpen(false);
+    setSaving(false);
   };
 
   const confirmDelete = (id: string) => {
@@ -172,10 +195,10 @@ const AdminProducts = () => {
     const files = e.target.files;
     if (!files?.length) return;
     const fileArray = Array.from(files);
-    const maxSize = 3 * 1024 * 1024; // 3MB per file
+    const maxSize = 10 * 1024 * 1024; // 10MB per file
     const validFiles = fileArray.filter((f) => {
       if (f.size > maxSize) {
-        toast.error(`${f.name} is too large (max 3MB). Skipped.`);
+        toast.error(`${f.name} is too large (max 10MB). Skipped.`);
         return false;
       }
       if (!f.type.startsWith("image/")) {
@@ -185,6 +208,7 @@ const AdminProducts = () => {
       return true;
     });
     if (validFiles.length === 0) return;
+    setUploadingImages(true);
     let read = 0;
     validFiles.forEach((file) => {
       const reader = new FileReader();
@@ -194,6 +218,7 @@ const AdminProducts = () => {
         read++;
         if (read === validFiles.length) {
           toast.success(`${validFiles.length} image(s) added`);
+          setUploadingImages(false);
         }
       };
       reader.readAsDataURL(file);
@@ -217,7 +242,11 @@ const AdminProducts = () => {
           <h1 className="font-display text-2xl font-bold text-foreground">Products</h1>
           <p className="mt-1 font-body text-sm text-muted-foreground">{isLoading ? "Loading…" : `${products.length} bags in inventory`}</p>
         </div>
-        <Button onClick={openAdd} className="gap-1.5 bg-primary font-body text-xs font-semibold text-primary-foreground">
+        <Button
+          onClick={openAdd}
+          className="gap-1.5 bg-primary font-body text-xs font-semibold text-primary-foreground"
+          disabled={saving}
+        >
           <Plus className="h-3.5 w-3.5" />
           Add New Bag
         </Button>
@@ -412,12 +441,13 @@ const AdminProducts = () => {
                 variant="outline"
                 className="w-full gap-2"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImages || saving}
               >
                 <Upload className="h-4 w-4" />
-                Upload from device (computer or phone)
+                {uploadingImages ? "Adding images..." : "Upload from device (computer or phone)"}
               </Button>
               <p className="font-body text-xs text-muted-foreground">
-                JPG, PNG or WebP. Max 3MB per image. Works on mobile too.
+                JPG, PNG or WebP. Max 10MB per image. Works on mobile too.
               </p>
               {formImages.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -443,8 +473,12 @@ const AdminProducts = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>{editingProduct ? "Save changes" : "Add bag"}</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={saving || uploadingImages}>
+              {saving ? (editingProduct ? "Saving…" : "Adding…") : editingProduct ? "Save changes" : "Add bag"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

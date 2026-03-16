@@ -18,6 +18,14 @@ router.post('/', authMiddleware, async (req, res) => {
     const result = await cloudinary.uploader.upload(image, {
       folder: 'reserve-coach',
       resource_type: 'auto',
+      transformation: [
+        {
+          quality: 'auto',
+          fetch_format: 'auto',
+          width: 1600,
+          crop: 'limit',
+        },
+      ],
     });
     res.json({ url: result.secure_url });
   } catch (e) {
